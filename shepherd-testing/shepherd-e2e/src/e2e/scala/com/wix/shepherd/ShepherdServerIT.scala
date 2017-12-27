@@ -1,24 +1,22 @@
 package com.wix.shepherd
 
-import com.wix.e2e.http.BaseUri
-import com.wix.e2e.http.client.sync._
-import com.wix.e2e.http.matchers.ResponseMatchers._
 import com.wix.shepherd.ShepherdTestEnv.webSocketDriver
-import com.wix.shepherd.drivers.WebSocketDriver
+import com.wix.shepherd.drivers.ShepherdDriver
 import com.wix.shepherd.types._
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
+import com.wix.e2e.http.matchers.ResponseMatchers._
+
 
 class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
-  implicit val baseUri = BaseUri(port = 9901)
 
   "ShepherdServer" should {
-    "be up" in {
-      get("/topics") must beSuccessful
-      webSocketDriver.send(FetchOverview)
+    "communicate via http and web sockets" in {
+      webSocketDriver.getMain must beSuccessful
+      webSocketDriver.sendMessageToWebSocket(FetchOverview)
 
       eventually {
-        webSocketDriver.lastClientMessage must beSome(BrokerInfo("brokerId1", "address1"))
+        webSocketDriver.lastReceivedWebSocketMessage must beSome(BrokerInfo("brokerId1", "address1"))
       }
     }
   }
@@ -31,10 +29,11 @@ class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
 }
 
 object ShepherdTestEnv {
-  val webSocketDriver = new WebSocketDriver(9902)
+  val webSocketDriver = new ShepherdDriver(httpPort = 9901, webSocketPort = 9902)
 
   def start() = {
     ShepherdServer.start()
-    webSocketDriver.connect()
+    webSocketDriver.startWebSocket()
   }
 }
+
