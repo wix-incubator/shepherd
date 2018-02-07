@@ -3,13 +3,12 @@ package com.wix.shepherd.drivers
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
+import com.wix.e2e.http.BaseUri
+import com.wix.shepherd.{RegistrationEvent, ShepherdClientRequest, ShepherdServerUpdate}
 import com.wix.shepherd.json.JsonSerdes._
-import com.wix.shepherd.types.ShepherdEvent
+import com.wix.shepherd.sections.OverviewSection
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
-
-import com.wix.e2e.http.BaseUri
-import com.wix.e2e.http.client.sync._
 
 class ShepherdDriver(httpPort: Int, webSocketPort: Int) {
   implicit val baseUri = BaseUri(port = httpPort)
@@ -18,11 +17,11 @@ class ShepherdDriver(httpPort: Int, webSocketPort: Int) {
 
   def startWebSocket(): Unit = webSocketClient.connectBlocking()
 
-  def sendMessageToWebSocket[T <: AnyRef](msg: T) = webSocketClient.getConnection.send(msg.asJsonStr)
+  def registerToOverview() = sendMessageToWebSocket(RegistrationEvent(OverviewSection.sectionId))
 
-  def lastReceivedWebSocketMessage[T <: AnyRef] = webSocketClient.lastClientMessageRef.get().map(_.as[ShepherdEvent])
+  def lastUpdate[T <: ShepherdServerUpdate] = webSocketClient.lastClientMessageRef.get().map(_.as[ShepherdServerUpdate])
 
-  def getMain = get("/topics")
+  private def sendMessageToWebSocket[T <: ShepherdClientRequest](msg: T) = webSocketClient.getConnection.send(msg.asJsonStr)
 }
 
 private class ShepherdWebSocketClient(port: Int) extends WebSocketClient(new URI(s"ws://localhost:$port")) {

@@ -1,25 +1,24 @@
 package com.wix.shepherd
 
-import com.wix.shepherd.ShepherdTestEnv.webSocketDriver
+import com.wix.shepherd.ShepherdTestEnv.shepherdDriver
 import com.wix.shepherd.drivers.ShepherdDriver
-import com.wix.shepherd.types._
+import com.wix.shepherd.sections.{BrokerInfo, OverviewUpdate}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
-import com.wix.e2e.http.matchers.ResponseMatchers._
-
 
 class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
 
   "ShepherdServer" should {
     "communicate via http and web sockets" in {
-      webSocketDriver.getMain must beSuccessful
-      webSocketDriver.sendMessageToWebSocket(FetchOverview)
+      shepherdDriver.registerToOverview()
 
       eventually {
-        webSocketDriver.lastReceivedWebSocketMessage must beSome(BrokerInfo("brokerId1", "address1"))
+        lastUpdate.get.asInstanceOf[OverviewUpdate].brokers === Seq(BrokerInfo("kfk1.42.wixprod.net", "10Mbps"))
       }
     }
   }
+
+  private def lastUpdate = shepherdDriver.lastUpdate
 
   override def beforeAll() = {
     ShepherdTestEnv.start()
@@ -29,11 +28,14 @@ class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
 }
 
 object ShepherdTestEnv {
-  val webSocketDriver = new ShepherdDriver(httpPort = 9901, webSocketPort = 9902)
+  val shepherdDriver = new ShepherdDriver(httpPort = 9901, webSocketPort = 9902)
 
-  def start() = {
+  private lazy val startOnceLazy = {
     ShepherdServer.start()
-    webSocketDriver.startWebSocket()
+    shepherdDriver.startWebSocket()
+    val x = 5
   }
+
+  def start() = startOnceLazy
 }
 

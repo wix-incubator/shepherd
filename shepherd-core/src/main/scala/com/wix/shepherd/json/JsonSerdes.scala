@@ -27,11 +27,10 @@ object JsonSerdes {
   }
 
   implicit class String2jsonNode(value: String) {
-    def as[T](implicit mn: Manifest[T]): T = {
+    def as[T](implicit mn: Manifest[T]): T =
       mapper.readValue(value, new TypeReference[T] {
         override def getType = typeFromManifest(manifest[T])
       })
-    }
 
     private def typeFromManifest(m: Manifest[_]): Type = {
       if (m.typeArguments.isEmpty) {
