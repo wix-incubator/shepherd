@@ -27,8 +27,8 @@ class RegistrationStore extends ClientsUpdatePublisher {
     stopPollingToBrowser(browserAddress, mappingsBeforeRemoval)
   }
 
-  def publishToClients(update: ShepherdServerUpdate) =
-    update.specificBrowser match {
+  def publishToClients(update: ShepherdServerUpdate, forBrowser: Option[BrowserAddress]) =
+    forBrowser match {
       case None => currentBrowsers.broadcast(update)
       case Some(address) => currentBrowsers.browser(address).foreach(_.send(update))
     }
@@ -67,5 +67,5 @@ object BrowserMappings {
 
 
 trait ClientsUpdatePublisher {
-  def publishToClients(update: ShepherdServerUpdate): Unit
+  def publishToClients(update: ShepherdServerUpdate, specificClient: Option[BrowserAddress]): Unit
 }

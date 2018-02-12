@@ -1,5 +1,6 @@
 package com.wix.shepherd
 
+import com.wix.KafkaCluster
 import com.wix.shepherd.ShepherdTestEnv.shepherdDriver
 import com.wix.shepherd.drivers.ShepherdDriver
 import com.wix.shepherd.sections.{BrokerInfo, OverviewUpdate}
@@ -15,7 +16,7 @@ class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
       shepherdDriver.registerToOverview()
 
       eventually {
-        lastUpdate.get.asInstanceOf[OverviewUpdate].brokers === Seq(BrokerInfo("kfk1.42.wixprod.net", "10Mbps"))
+        lastUpdate must beSome(OverviewUpdate(Seq(BrokerInfo("kfk1.42.wixprod.net", 0))))
       }
     }
   }
@@ -26,18 +27,27 @@ class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
     ShepherdTestEnv.start()
   }
 
-  override def afterAll() = {}
+  override def afterAll() = {
+    ShepherdTestEnv.stop()
+  }
 }
 
 object ShepherdTestEnv {
   val socketServerPort = Random.nextInt(50000) + 2000
   val shepherdDriver = new ShepherdDriver(httpPort = 9901, webSocketPort = socketServerPort)
+  val kafkaCluster = new KafkaCluster
 
   private lazy val startOnceLazy = {
+    kafkaCluster.start(3)
     ShepherdServer.start(ShepherdConfig(socketServerPort))
     shepherdDriver.startWebSocket()
   }
 
   def start() = startOnceLazy
+
+  def stop() = {
+    kafkaCluster.stop()
+    shepherdDriver.shutdown()
+  }
 }
 

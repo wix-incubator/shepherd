@@ -1,7 +1,6 @@
 package com.wix.shepherd
 
-import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonTypeInfo}
-import com.wix.shepherd.messaging.BrowserAddress
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.wix.shepherd.sections.SectionSpecificSubscription
 import com.wix.shepherd.sections.SectionSpecificSubscription.NoSpecificSectionSubscription
 import com.wix.shepherd.types.SectionId
@@ -16,7 +15,4 @@ case class RegistrationEvent(sectionId: SectionId, sectionSpecificSubscription: 
 trait ShepherdClientRequest
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonIgnoreProperties(ignoreUnknown = true, value = Array("specificBrowser"))
-trait ShepherdServerUpdate {
-  val specificBrowser: Option[BrowserAddress] = None
-}
+trait ShepherdServerUpdate

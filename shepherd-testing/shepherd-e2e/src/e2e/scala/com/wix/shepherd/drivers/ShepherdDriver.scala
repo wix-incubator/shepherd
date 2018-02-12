@@ -21,6 +21,8 @@ class ShepherdDriver(httpPort: Int, webSocketPort: Int) {
 
   def lastUpdate[T <: ShepherdServerUpdate] = webSocketClient.lastClientMessageRef.get().map(_.as[ShepherdServerUpdate])
 
+  def shutdown() = webSocketClient.close()
+
   private def sendMessageToWebSocket[T <: ShepherdClientRequest](msg: T) = webSocketClient.getConnection.send(msg.asJsonStr)
 }
 
