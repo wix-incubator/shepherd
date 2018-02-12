@@ -26,6 +26,10 @@ class KafkaCluster {
     })
   }
 
+  def zookeeperAddress = s"localhost:$zkPort"
+
+  def brokersAddress = brokersRef.get.map { case (_, kafka) => kafka.address }.mkString(",")
+
   private def startZookeeperAndBrokers(brokerCount: BrokerId) = {
     zookeeper.start()
     startBrokers(brokerCount)

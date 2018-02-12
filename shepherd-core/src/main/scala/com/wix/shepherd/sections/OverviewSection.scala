@@ -2,13 +2,20 @@ package com.wix.shepherd.sections
 
 import com.wix.shepherd.ShepherdServerUpdate
 import com.wix.shepherd.messaging.{BrowserAddress, ClientsUpdatePublisher}
+import kafka.cluster.EndPoint
+import kafka.utils.ZkUtils
 
-class OverviewSection(updater: ClientsUpdatePublisher) extends Section(OverviewSection.sectionId, updater) {
+class OverviewSection(updater: ClientsUpdatePublisher, zkUtils: ZkUtils) extends Section(OverviewSection.sectionId, updater) {
   def resetSubscriptions(subscriptions: Map[SectionSpecificSubscription, Set[BrowserAddress]], newSubscription: Option[BrowserSectionSubscription]) = {
     newSubscription.foreach { subscription =>
-      updater.publishToClients(OverviewUpdate(Seq(BrokerInfo("kfk1.42.wixprod.net", 0))), Some(subscription.browserAddress))
+      val brokerInfos = brokers.map(broker => BrokerInfo(broker.endPoints.map(toPrettyHostname).head, 0))
+      updater.publishToClients(OverviewUpdate(brokerInfos.sortBy(_.hostname)), Some(subscription.browserAddress))
     }
   }
+
+  private def brokers = zkUtils.getAllBrokersInCluster()
+
+  private def toPrettyHostname(endpoint: EndPoint) = s"${endpoint.host}:${endpoint.port}"
 }
 
 object OverviewSection {

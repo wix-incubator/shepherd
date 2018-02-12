@@ -7,7 +7,7 @@ import com.wix.shepherd.messaging.{BrowserAddress, ClientsUpdatePublisher}
 import com.wix.shepherd.types.SectionId
 import com.wix.shepherd.utils.JavaUnaryOperatorConverter._
 
-abstract class Section(sectionId: SectionId, clientUpdateQueue: ClientsUpdatePublisher) {
+abstract class Section(sectionId: SectionId, clientUpdater: ClientsUpdatePublisher) {
   private val subscriptionCounters = new AtomicReference[Map[SectionSpecificSubscription, Set[BrowserAddress]]](Map.empty)
 
   def subscribe(browserSubscription: BrowserSectionSubscription) = {

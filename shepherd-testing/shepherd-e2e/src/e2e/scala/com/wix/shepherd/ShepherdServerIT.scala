@@ -12,11 +12,12 @@ import scala.util.Random
 class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
 
   "ShepherdServer" should {
-    "communicate via http and web sockets" in {
+    "when stepping into overview section - receive a list of the kafka servers" in {
       shepherdDriver.registerToOverview()
 
       eventually {
-        lastUpdate must beSome(OverviewUpdate(Seq(BrokerInfo("kfk1.42.wixprod.net", 0))))
+        lastUpdate must beSome(OverviewUpdate(Seq(
+          BrokerInfo("127.0.0.1:10001", 0), BrokerInfo("127.0.0.1:10002", 0), BrokerInfo("127.0.0.1:10003", 0))))
       }
     }
   }
@@ -39,7 +40,7 @@ object ShepherdTestEnv {
 
   private lazy val startOnceLazy = {
     kafkaCluster.start(3)
-    ShepherdServer.start(ShepherdConfig(socketServerPort))
+    ShepherdServer.start(ShepherdConfig(socketServerPort, kafkaCluster.zookeeperAddress, kafkaCluster.brokersAddress))
     shepherdDriver.startWebSocket()
   }
 
