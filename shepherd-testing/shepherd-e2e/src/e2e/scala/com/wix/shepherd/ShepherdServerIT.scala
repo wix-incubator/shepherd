@@ -6,6 +6,8 @@ import com.wix.shepherd.sections.{BrokerInfo, OverviewUpdate}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 
+import scala.util.Random
+
 class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
 
   "ShepherdServer" should {
@@ -28,12 +30,12 @@ class ShepherdServerIT extends SpecificationWithJUnit with BeforeAfterAll {
 }
 
 object ShepherdTestEnv {
-  val shepherdDriver = new ShepherdDriver(httpPort = 9901, webSocketPort = 9902)
+  val socketServerPort = Random.nextInt(50000) + 2000
+  val shepherdDriver = new ShepherdDriver(httpPort = 9901, webSocketPort = socketServerPort)
 
   private lazy val startOnceLazy = {
-    ShepherdServer.start()
+    ShepherdServer.start(ShepherdConfig(socketServerPort))
     shepherdDriver.startWebSocket()
-    val x = 5
   }
 
   def start() = startOnceLazy
